@@ -1,0 +1,63 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Redirect</title>
+  </head>
+  <body>
+    <script>
+      (function () {
+        var params = new URLSearchParams(window.location.search);
+
+        function buildGithubOauthUrl() {
+          var oauth = new URL("https://github.com/login/oauth/authorize");
+
+          var clientId = params.get("client_id");
+          var redirectUri = params.get("redirect_uri");
+          var scope = params.get("scope");
+          var state = params.get("state");
+          var allowSignup = params.get("allow_signup");
+
+          if (clientId) {
+            oauth.searchParams.set("client_id", clientId);
+          }
+          if (redirectUri) {
+            oauth.searchParams.set("redirect_uri", redirectUri);
+          }
+          if (scope) {
+            oauth.searchParams.set("scope", scope);
+          }
+          if (state) {
+            oauth.searchParams.set("state", state);
+          }
+          if (allowSignup) {
+            oauth.searchParams.set("allow_signup", allowSignup);
+          }
+
+          return oauth.toString();
+        }
+
+        var deepLink = params.get("deep_link") || "br.com.linkedrh.joinrh://oauth/github";
+        var fallbackUrl = params.get("fallback_url") || buildGithubOauthUrl();
+        var timeoutMs = Number(params.get("timeout") || 1600);
+
+        var timer = window.setTimeout(function () {
+          window.location.replace(fallbackUrl);
+        }, timeoutMs);
+
+        document.addEventListener("visibilitychange", function () {
+          if (document.hidden) {
+            clearTimeout(timer);
+          }
+        });
+
+        window.addEventListener("pagehide", function () {
+          clearTimeout(timer);
+        });
+
+        window.location.href = deepLink;
+      })();
+    </script>
+  </body>
+</html>
